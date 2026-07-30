@@ -3,7 +3,7 @@
 
 import * as readline from "node:readline";
 import { Message, Provider } from "../types.js";
-import { runAgent, SYSTEM_PROMPT } from "../agent/loop.js";
+import { runAgent, buildSystemPrompt } from "../agent/loop.js";
 
 const DIM = "\x1b[2m";
 const RESET = "\x1b[0m";
@@ -26,10 +26,10 @@ export async function startRepl(opts: ReplOpts): Promise<void> {
   });
   const ask = (q: string) => new Promise<string>((r) => rl.question(q, (a) => r(a)));
 
-  let history: Message[] = [{ role: "system", content: SYSTEM_PROMPT }];
+  let history: Message[] = [{ role: "system", content: buildSystemPrompt(opts.cwd) }];
 
   console.log(`${DIM}sarvam-cli · provider=${opts.provider.name} · cwd=${opts.cwd}${RESET}`);
-  console.log(`${DIM}Type your request. /exit to quit, /clear to reset history.${RESET}\n`);
+  console.log(`${DIM}Type your request. exit to quit, clear to reset history.${RESET}\n`);
 
   const approve = async (tool: string, summary: string, detail: string): Promise<boolean> => {
     if (opts.approveMode === "never") return true;
@@ -47,9 +47,9 @@ export async function startRepl(opts: ReplOpts): Promise<void> {
     const trimmed = input.trim();
 
     if (!trimmed) continue;
-    if (trimmed === "/exit" || trimmed === "/quit") break;
-    if (trimmed === "/clear") {
-      history = [{ role: "system", content: SYSTEM_PROMPT }];
+    if (trimmed === "/exit" || trimmed === "/quit" || trimmed === "exit" || trimmed === "quit") break;
+    if (trimmed === "/clear" || trimmed === "clear") {
+      history = [{ role: "system", content: buildSystemPrompt(opts.cwd) }];
       console.log(`${DIM}history cleared${RESET}\n`);
       continue;
     }
@@ -90,7 +90,7 @@ export async function runSinglePrompt(
   prompt: string,
   opts: ReplOpts
 ): Promise<void> {
-  const history: Message[] = [{ role: "system", content: SYSTEM_PROMPT }];
+  const history: Message[] = [{ role: "system", content: buildSystemPrompt(opts.cwd) }];
 
   const approve = async (tool: string, summary: string, _detail: string): Promise<boolean> => {
     if (opts.approveMode === "never") return true;

@@ -45,6 +45,14 @@ async function readFileRun(args: Record<string, unknown>, ctx: ToolCtx): Promise
   const limit = Number(args.limit ?? 500);
 
   try {
+    // Check if it's a directory before trying to read it as a file.
+    const stat = await fs.stat(abs);
+    if (stat.isDirectory()) {
+      const entries = await fs.readdir(abs);
+      const listing = entries.slice(0, 50).join("\n");
+      return `Error: ${p} is a directory, not a file. Use run_shell with "ls -la ${p}" to list its contents.\n\nDirectory contents:\n${listing}${entries.length > 50 ? `\n…(${entries.length - 50} more)` : ""}`;
+    }
+
     const content = await fs.readFile(abs, "utf8");
     const lines = content.split("\n");
     const slice = lines.slice(offset - 1, offset - 1 + limit);

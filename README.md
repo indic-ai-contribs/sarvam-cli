@@ -2,7 +2,7 @@
 
 An open-source agentic CLI coding assistant powered by **Sarvam AI**, built on the official [`sarvamai`](https://www.npmjs.com/package/sarvamai) SDK, with an OpenAI-compatible fallback provider. It reads, writes, and edits files and runs shell commands in your project — with your approval before any side effect.
 
-Think of it as a lightweight, hackable terminal agent that talks to Sarvam's Indic-first LLMs (`sarvam-m`, `sarvam-30b`, `sarvam-105b`) via the official SDK, and degrades gracefully to any OpenAI-compatible endpoint as a fallback. MIT-licensed, designed to complement Sarvam's SDK + skills ecosystem and be adoptable upstream.
+Think of it as a lightweight, hackable terminal agent that talks to Sarvam's Indic-first LLMs (`sarvam-105b`) via the official SDK, and degrades gracefully to any OpenAI-compatible endpoint as a fallback. MIT-licensed, designed to complement Sarvam's SDK + skills ecosystem and be adoptable upstream.
 
 ## Why
 
@@ -44,7 +44,7 @@ This writes `~/.sarvam/config.json`:
 ```json
 {
   "provider": "sarvam",
-  "sarvam": { "apiKey": "sk_...", "model": "sarvam-m" },
+  "sarvam": { "apiKey": "sk_...", "model": "sarvam-105b" },
   "openai": { "apiKey": "", "model": "gpt-4o" }
 }
 ```
@@ -95,7 +95,7 @@ All flags:
 
 ```
   -p, --provider <name>           sarvam | openai
-  -m, --model <name>              Model name (sarvam-m, sarvam-30b, sarvam-105b, gpt-4o, ...)
+  -m, --model <name>              Model name (sarvam-105b, gpt-4o, ...)
       --base-url <url>            Override the API base URL (OpenAI provider only)
       --approve <mode>            always | never  (default: prompt each time)
   -t, --temperature <n>           Sampling temperature (0–2)

@@ -13,7 +13,7 @@ import { Message, Provider, ToolDef, StreamCallbacks, ChatCompletionDelta, ToolC
 
 export interface SarvamProviderOpts {
   apiKey: string;
-  model?: string; // sarvam-m | sarvam-30b | sarvam-105b
+  model?: string; // sarvam-105b (128K context) — sarvam-m is deprecated
 }
 
 export class SarvamProvider implements Provider {
@@ -23,7 +23,7 @@ export class SarvamProvider implements Provider {
 
   constructor(opts: SarvamProviderOpts) {
     this.client = new SarvamAIClient({ apiSubscriptionKey: opts.apiKey });
-    this.model = opts.model ?? "sarvam-m";
+    this.model = opts.model ?? "sarvam-105b";
   }
 
   async chatStream(

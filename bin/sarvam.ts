@@ -84,7 +84,7 @@ USAGE
 
 FLAGS
   -p, --provider <name>           sarvam | openai  (default: from config or env)
-  -m, --model <name>              Model name (sarvam-m, sarvam-30b, sarvam-105b, gpt-4o, ...)
+  -m, --model <name>              Model name (sarvam-105b, gpt-4o, ...)
       --base-url <url>            Override API base URL (OpenAI provider only)
       --approve <mode>            always | never  (default: prompt each time)
   -t, --temperature <n>           Sampling temperature (0–2)

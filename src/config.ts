@@ -4,7 +4,7 @@
 // Example config:
 // {
 //   "provider": "sarvam",
-//   "sarvam": { "apiKey": "sk_...", "model": "sarvam-m" },
+//   "sarvam": { "apiKey": "sk_...", "model": "sarvam-105b" },
 //   "openai": { "apiKey": "sk-...", "model": "gpt-4o", "baseUrl": "https://api.openai.com/v1" }
 // }
 
@@ -37,28 +37,30 @@ export async function loadConfig(overrides?: Partial<Config>): Promise<Config> {
     file.provider ??
     (process.env.SARVAM_API_KEY ? "sarvam" : process.env.OPENAI_API_KEY ? "openai" : "sarvam")) as Config["provider"];
 
+  // Note: use || (not ??) so empty strings from a partial config file
+  // fall through to env vars. ?? would keep "" and block the env fallback.
   const sarvamApiKey =
-    overrides?.sarvam?.apiKey ??
-    file.sarvam?.apiKey ??
-    process.env.SARVAM_API_KEY ??
+    overrides?.sarvam?.apiKey ||
+    file.sarvam?.apiKey ||
+    process.env.SARVAM_API_KEY ||
     "";
 
   const openaiApiKey =
-    overrides?.openai?.apiKey ??
-    file.openai?.apiKey ??
-    process.env.OPENAI_API_KEY ??
+    overrides?.openai?.apiKey ||
+    file.openai?.apiKey ||
+    process.env.OPENAI_API_KEY ||
     "";
 
   const cfg: Config = {
     provider,
     sarvam: {
       apiKey: sarvamApiKey,
-      model: overrides?.sarvam?.model ?? file.sarvam?.model ?? "sarvam-m",
+      model: overrides?.sarvam?.model || file.sarvam?.model || "sarvam-105b",
       baseUrl: overrides?.sarvam?.baseUrl ?? file.sarvam?.baseUrl,
     },
     openai: {
       apiKey: openaiApiKey,
-      model: overrides?.openai?.model ?? file.openai?.model ?? "gpt-4o",
+      model: overrides?.openai?.model || file.openai?.model || "gpt-4o",
       baseUrl: overrides?.openai?.baseUrl ?? file.openai?.baseUrl,
     },
     temperature: overrides?.temperature ?? file.temperature,
@@ -82,7 +84,7 @@ export async function initConfigInteractive(): Promise<Config | null> {
   console.log("\n  sarvam-cli init\n  ----------------\n");
   const provider = (await ask("Provider [sarvam/openai] (default: sarvam): ")) || "sarvam";
   const sarvamKey = await ask("Sarvam API key (sk_..., Enter to skip): ");
-  const sarvamModel = (await ask("Sarvam model (default: sarvam-m): ")) || "sarvam-m";
+  const sarvamModel = (await ask("Sarvam model (default: sarvam-105b): ")) || "sarvam-105b";
   const openaiKey = await ask("OpenAI-compatible API key (Enter to skip): ");
   const openaiModel = (await ask("OpenAI model (default: gpt-4o): ")) || "gpt-4o";
 
