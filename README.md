@@ -17,11 +17,56 @@ Sarvam ships an excellent SDK (`sarvamai` on npm/PyPI) and Agent Skills for host
 | Skills for hosted editors | `sarvamai/skills` (official) | Claude Code, Cursor |
 | **Standalone terminal agent** | **sarvam-cli (this project)** | — |
 
-## What's new in v0.2.0
+## Changelog
 
-- **Now backed by the official `sarvamai` SDK** — no more hand-rolled fetch. The SDK handles auth, retries, SSE parsing, and SDK quirks (like the `content=null` gotcha when reasoning consumes the token budget).
-- **Reasoning token streaming** — Sarvam's `reasoning_content` deltas are now surfaced live in the REPL (dimmed/italic), so you can see the model thinking when `--reasoning-effort` is set.
-- Cleaner provider separation: the Sarvam provider is thin (SDK-backed), the OpenAI provider remains raw-fetch for maximum compatibility.
+### v0.2.8
+- Ctrl+O toggles reasoning display on/off (replaces /reasoning command)
+- /model command switches models mid-session without restarting
+- Provider interface gains getModel() and setModel() methods
+- SARVAM_MODELS exported for model listing
+- Welcome message shows current model + available shortcuts
+
+### v0.2.7
+- Reasoning tokens collected silently in background buffer (never shown by default)
+- /reasoning command toggles inline reasoning display on/off
+- /show command dumps the full reasoning log from the session
+- Reasoning is passed per-turn to the UI callback (not streamed live)
+- Welcome message updated to show available commands
+
+### v0.2.6
+- Buffer reasoning_content tokens (same as text) — discard when tool calls present
+- Detect and skip duplicate tool calls (model was calling pwd twice)
+- Add "do not repeat tool calls" rule to system prompt
+
+### v0.2.5
+- Add tool aliases: bash/shell/exec/cmd → run_shell, cat/read → read_file, etc. (model was calling "bash" and getting "Unknown tool")
+- List exact tool names in system prompt: "Do NOT invent tool names like bash, cat, exec"
+- Compact REPL output: single-line approval, drop "Exit: 0" noise, no redundant confirmation lines
+- Strip exit-code lines from tool result display in REPL
+- Tell model not to repeat tool output in its response
+
+### v0.2.4
+- Buffer streamed text and discard chain-of-thought when tool calls are present (only show final answer)
+- Detect premature stops after partial work ("No response requested", "done", etc.) and nudge model to continue
+- Add task completion rules to system prompt: complete ALL steps, don't stop after one tool call
+
+### v0.2.3
+- Fix `read_file` crashing on directories (EISDIR) — now detects directories and returns a helpful listing
+- Constrain model to working directory via dynamic `{CWD}` injection in system prompt
+- Auto-recover from empty responses with nudge mechanism
+
+### v0.2.2
+- Suppress chain-of-thought leakage via system prompt rules
+- Accept `exit`, `quit`, `clear` without leading slash in REPL
+
+### v0.2.1
+- Fix deprecated `sarvam-m` model default → `sarvam-105b` (API returns 400 for sarvam-m)
+- Fix env var fallback bug: `??` → `||` for API key resolution so empty strings from partial config files don't block env vars
+
+### v0.2.0
+- Now backed by the official `sarvamai` SDK — no more hand-rolled fetch
+- Reasoning token streaming — `reasoning_content` deltas surfaced live in the REPL
+- Cleaner provider separation: Sarvam provider is SDK-backed, OpenAI provider is raw-fetch
 
 ## Install
 

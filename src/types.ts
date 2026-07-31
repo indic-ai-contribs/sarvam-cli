@@ -56,6 +56,8 @@ export interface ToolCallParsed {
 
 export interface Provider {
   name: string;
+  getModel(): string;
+  setModel(model: string): void;
   chatStream(
     messages: Message[],
     tools: ToolDef[],

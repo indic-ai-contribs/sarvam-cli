@@ -24,6 +24,14 @@ export class OpenAIProvider implements Provider {
     this.baseUrl = (opts.baseUrl ?? "https://api.openai.com/v1").replace(/\/$/, "");
   }
 
+  getModel(): string {
+    return this.model;
+  }
+
+  setModel(model: string): void {
+    this.model = model;
+  }
+
   async chatStream(
     messages: Message[],
     tools: ToolDef[],

@@ -1,15 +1,19 @@
-// Interactive REPL UI — line-buffered prompt, streaming output, and
-// approval prompts (y/n) before any side-effecting tool runs.
+// Interactive REPL UI — clean foreground (tool calls + output only),
+// reasoning collected silently in background, toggle with Ctrl+O.
+// /model switches models mid-session.
 
 import * as readline from "node:readline";
 import { Message, Provider } from "../types.js";
 import { runAgent, buildSystemPrompt } from "../agent/loop.js";
+import { SARVAM_MODELS } from "../providers/sarvam.js";
 
 const DIM = "\x1b[2m";
 const RESET = "\x1b[0m";
 const CYAN = "\x1b[36m";
 const GREEN = "\x1b[32m";
 const YELLOW = "\x1b[33m";
+const RED = "\x1b[31m";
+const MAGENTA = "\x1b[35m";
 
 export interface ReplOpts {
   provider: Provider;
@@ -28,18 +32,42 @@ export async function startRepl(opts: ReplOpts): Promise<void> {
 
   let history: Message[] = [{ role: "system", content: buildSystemPrompt(opts.cwd) }];
 
-  console.log(`${DIM}sarvam-cli · provider=${opts.provider.name} · cwd=${opts.cwd}${RESET}`);
-  console.log(`${DIM}Type your request. exit to quit, clear to reset history.${RESET}\n`);
+  // Background reasoning buffer
+  let reasoningLog = "";
+  let showReasoning = false;
 
-  const approve = async (tool: string, summary: string, detail: string): Promise<boolean> => {
-    if (opts.approveMode === "never") return true;
-    if (opts.approveMode === "always") return true;
-    console.log(`${YELLOW}▸ approve ${tool}: ${summary}${RESET}`);
-    if (detail) console.log(`${DIM}${detail}${RESET}`);
-    const ans = (await ask(`${YELLOW}proceed? [y/N] ${RESET}`)).toLowerCase();
-    const ok = ans === "y" || ans === "yes";
-    console.log(ok ? `${GREEN}✓ approved${RESET}` : `${DIM}✗ declined${RESET}`);
-    return ok;
+  const printStatus = () => {
+    const model = opts.provider.getModel();
+    const reasoningStatus = showReasoning ? `${MAGENTA}on${RESET}` : `${DIM}off${RESET}`;
+    console.log(`${DIM}sarvam-cli · ${opts.provider.name} · ${model} · ${opts.cwd}${RESET}`);
+    console.log(`${DIM}exit to quit · clear to reset · Ctrl+O reasoning · /model to switch${RESET}`);
+    console.log(`${DIM}reasoning: ${reasoningStatus}\n`);
+  };
+
+  printStatus();
+
+  // Ctrl+O handler — toggle reasoning display
+  // Ctrl+O sends \x0f (character code 15)
+  process.stdin.on("data", (data) => {
+    for (const byte of data) {
+      if (byte === 0x0f) {
+        showReasoning = !showReasoning;
+        if (showReasoning) {
+          process.stdout.write(`\r${MAGENTA}reasoning ON${RESET}  \n`);
+        } else {
+          process.stdout.write(`\r${DIM}reasoning OFF${RESET}  \n`);
+        }
+        // Re-print prompt
+        process.stdout.write(`${CYAN}❯ ${RESET}`);
+      }
+    }
+  });
+
+  const approve = async (tool: string, summary: string, _detail: string): Promise<boolean> => {
+    if (opts.approveMode === "never" || opts.approveMode === "always") return true;
+    const label = summary.length > 60 ? summary.slice(0, 57) + "…" : summary;
+    const ans = (await ask(`${YELLOW}▸ ${tool}: ${label} ${DIM}[y/N]${RESET} `)).toLowerCase().trim();
+    return ans === "y" || ans === "yes";
   };
 
   while (true) {
@@ -48,14 +76,53 @@ export async function startRepl(opts: ReplOpts): Promise<void> {
 
     if (!trimmed) continue;
     if (trimmed === "/exit" || trimmed === "/quit" || trimmed === "exit" || trimmed === "quit") break;
+
+    // /model — switch model mid-session
+    if (trimmed === "/model" || trimmed === "model") {
+      const current = opts.provider.getModel();
+      console.log(`${DIM}Current model: ${current}${RESET}`);
+
+      if (opts.provider.name === "sarvam") {
+        console.log(`${DIM}Available: ${SARVAM_MODELS.join(", ")}${RESET}`);
+        const choice = (await ask(`${CYAN}model> ${RESET}`)).trim();
+        if (choice) {
+          opts.provider.setModel(choice);
+          console.log(`${GREEN}✓ switched to ${opts.provider.getModel()}${RESET}\n`);
+        } else {
+          console.log(`${DIM}no change${RESET}\n`);
+        }
+      } else {
+        const choice = (await ask(`${CYAN}model name> ${RESET}`)).trim();
+        if (choice) {
+          opts.provider.setModel(choice);
+          console.log(`${GREEN}✓ switched to ${opts.provider.getModel()}${RESET}\n`);
+        } else {
+          console.log(`${DIM}no change${RESET}\n`);
+        }
+      }
+      continue;
+    }
+
+    // /show — dump full reasoning log
+    if (trimmed === "/show" || trimmed === "show reasoning") {
+      if (reasoningLog.trim()) {
+        console.log(`\n${MAGENTA}── Reasoning Log ──${RESET}`);
+        console.log(`${DIM}${reasoningLog}${RESET}`);
+        console.log(`${MAGENTA}── End ──${RESET}\n`);
+      } else {
+        console.log(`${DIM}No reasoning collected.${RESET}\n`);
+      }
+      continue;
+    }
+
     if (trimmed === "/clear" || trimmed === "clear") {
       history = [{ role: "system", content: buildSystemPrompt(opts.cwd) }];
-      console.log(`${DIM}history cleared${RESET}\n`);
+      reasoningLog = "";
+      console.log(`${DIM}cleared${RESET}\n`);
       continue;
     }
 
     try {
-      process.stdout.write(DIM);
       history = await runAgent(history, trimmed, {
         provider: opts.provider,
         cwd: opts.cwd,
@@ -66,19 +133,26 @@ export async function startRepl(opts: ReplOpts): Promise<void> {
           process.stdout.write(RESET + chunk);
         },
         onReasoning: (chunk) => {
-          process.stdout.write(`\x1b[2;3m${chunk}\x1b[0m`);
+          reasoningLog += chunk;
+          if (showReasoning) {
+            process.stdout.write(`\x1b[2;3m${chunk}\x1b[0m`);
+          }
         },
         onToolCall: (name, args) => {
-          process.stdout.write(`\n${YELLOW}▸ ${name}(${JSON.stringify(args).slice(0, 120)})${RESET} `);
+          const argPreview = JSON.stringify(args).slice(0, 80);
+          process.stdout.write(`\n${DIM}▸ ${name}${argPreview !== "{}" ? ` ${argPreview}` : ""}${RESET}`);
         },
         onToolResult: (name, result) => {
-          const preview = result.split("\n").slice(0, 3).join("\n");
-          process.stdout.write(`\n${DIM}${preview}${result.length > 200 ? "…" : ""}${RESET}`);
+          const lines = result.split("\n").filter((l) => !l.startsWith("[exit:"));
+          const preview = lines.slice(0, 5).join("\n");
+          if (preview.trim()) {
+            process.stdout.write(`\n${DIM}${preview}${result.length > 300 ? "…" : ""}${RESET}`);
+          }
         },
       });
       process.stdout.write(`\n\n${RESET}`);
     } catch (err) {
-      console.error(`\n${RESET}Error: ${(err as Error).message}\n`);
+      console.error(`\n${RED}Error: ${(err as Error).message}${RESET}\n`);
     }
   }
 
@@ -94,8 +168,9 @@ export async function runSinglePrompt(
 
   const approve = async (tool: string, summary: string, _detail: string): Promise<boolean> => {
     if (opts.approveMode === "never") return true;
-    console.log(`${YELLOW}▸ ${tool}: ${summary}${RESET}`);
-    return true; // single-prompt mode auto-approves (use --approve to change)
+    const label = summary.length > 60 ? summary.slice(0, 57) + "…" : summary;
+    console.log(`${YELLOW}▸ ${tool}: ${label}${RESET}`);
+    return true;
   };
 
   try {
@@ -107,16 +182,20 @@ export async function runSinglePrompt(
       reasoning_effort: opts.reasoning_effort,
       onText: (chunk) => process.stdout.write(chunk),
       onToolCall: (name, args) => {
-        console.log(`\n${YELLOW}▸ ${name}(${JSON.stringify(args).slice(0, 120)})${RESET}`);
+        const argPreview = JSON.stringify(args).slice(0, 80);
+        process.stdout.write(`\n${DIM}▸ ${name}${argPreview !== "{}" ? ` ${argPreview}` : ""}${RESET}`);
       },
       onToolResult: (_name, result) => {
-        const preview = result.split("\n").slice(0, 5).join("\n");
-        console.log(`${DIM}${preview}${RESET}`);
+        const lines = result.split("\n").filter((l) => !l.startsWith("[exit:"));
+        const preview = lines.slice(0, 5).join("\n");
+        if (preview.trim()) {
+          console.log(`${DIM}${preview}${RESET}`);
+        }
       },
     });
     console.log("");
   } catch (err) {
-    console.error(`\nError: ${(err as Error).message}`);
+    console.error(`\n${RED}Error: ${(err as Error).message}${RESET}`);
     process.exitCode = 1;
   }
 }

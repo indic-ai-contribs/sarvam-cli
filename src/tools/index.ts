@@ -45,7 +45,6 @@ async function readFileRun(args: Record<string, unknown>, ctx: ToolCtx): Promise
   const limit = Number(args.limit ?? 500);
 
   try {
-    // Check if it's a directory before trying to read it as a file.
     const stat = await fs.stat(abs);
     if (stat.isDirectory()) {
       const entries = await fs.readdir(abs);
@@ -174,8 +173,8 @@ async function runShellRun(args: Record<string, unknown>, ctx: ToolCtx): Promise
 
   const ok = await ctx.approve(
     "run_shell",
-    `Run command: ${command}`,
-    `cwd: ${ctx.cwd}`
+    command,
+    ""
   );
   if (!ok) return "User declined run_shell.";
 
@@ -191,7 +190,7 @@ async function runShellRun(args: Record<string, unknown>, ctx: ToolCtx): Promise
     child.stdout.on("data", append);
     child.stderr.on("data", append);
     child.on("close", (code) => {
-      resolve(`Exit: ${code}\n${out}${out.length >= cap ? "\n…(truncated)" : ""}`);
+      resolve(`${out}${out.length >= cap ? "\n…(truncated)" : ""}${code !== 0 ? `\n[exit: ${code}]` : ""}`);
     });
     child.on("error", (err) => resolve(`Error: ${err.message}`));
   });
@@ -207,12 +206,34 @@ export const TOOLS: ToolHandler[] = [
 
 export const TOOL_DEFS: ToolDef[] = TOOLS.map((t) => t.def);
 
+// Aliases: models sometimes guess tool names. Map common guesses to real tools.
+const TOOL_ALIASES: Record<string, string> = {
+  bash: "run_shell",
+  shell: "run_shell",
+  exec: "run_shell",
+  execute: "run_shell",
+  cmd: "run_shell",
+  command: "run_shell",
+  terminal: "run_shell",
+  read: "read_file",
+  cat: "read_file",
+  file: "read_file",
+  write: "write_file",
+  create_file: "write_file",
+  edit: "patch",
+  replace: "patch",
+  find_replace: "patch",
+  sed: "patch",
+};
+
 export async function executeTool(
   name: string,
   args: Record<string, unknown>,
   ctx: ToolCtx
 ): Promise<string> {
-  const handler = TOOLS.find((t) => t.def.function.name === name);
-  if (!handler) return `Unknown tool: ${name}`;
+  // Resolve alias → canonical tool name
+  const canonical = TOOL_ALIASES[name] ?? name;
+  const handler = TOOLS.find((t) => t.def.function.name === canonical);
+  if (!handler) return `Unknown tool: ${name}. Available tools: read_file, write_file, patch, run_shell.`;
   return handler.run(args, ctx);
 }

@@ -16,6 +16,11 @@ export interface SarvamProviderOpts {
   model?: string; // sarvam-105b (128K context) — sarvam-m is deprecated
 }
 
+// Models currently served by Sarvam's live API
+export const SARVAM_MODELS = [
+  "sarvam-105b",
+] as const;
+
 export class SarvamProvider implements Provider {
   name = "sarvam";
   private client: SarvamAIClient;
@@ -26,13 +31,20 @@ export class SarvamProvider implements Provider {
     this.model = opts.model ?? "sarvam-105b";
   }
 
+  getModel(): string {
+    return this.model;
+  }
+
+  setModel(model: string): void {
+    this.model = model;
+  }
+
   async chatStream(
     messages: Message[],
     tools: ToolDef[],
     opts: { temperature?: number; reasoning_effort?: "low" | "medium" | "high" },
     cb: StreamCallbacks
   ): Promise<void> {
-    // Build the request payload for the SDK.
     const request: Record<string, unknown> = {
       model: this.model,
       messages,
@@ -51,8 +63,6 @@ export class SarvamProvider implements Provider {
     try {
       stream = await this.client.chat.completions(request as any);
     } catch (err) {
-      // The SDK throws SarvamAIError subclasses (ForbiddenError, BadRequestError, etc.)
-      // with informative messages. We just surface them.
       const msg = err instanceof Error ? err.message : String(err);
       const hint = msg.includes("403") || msg.toLowerCase().includes("forbidden")
         ? " — invalid or missing API key? Get one at https://dashboard.sarvam.ai"
@@ -61,7 +71,6 @@ export class SarvamProvider implements Provider {
       return;
     }
 
-    // Accumulate streamed tool-call fragments (same OpenAI streaming shape).
     const toolCallAcc: Record<number, { id?: string; name?: string; args: string }> = {};
     let content = "";
 
@@ -70,20 +79,15 @@ export class SarvamProvider implements Provider {
         const delta = chunk?.choices?.[0]?.delta;
         if (!delta) continue;
 
-        // Text content — note: content can be null when reasoning_effort
-        // consumes the token budget (Sarvam SDK gotcha). Guard with ?? "".
         if (delta.content) {
           content += delta.content;
           cb.onDelta({ content: delta.content });
         }
 
-        // Reasoning tokens — Sarvam-native. Surface as a special delta
-        // so the UI can optionally render them (dimmed).
         if (delta.reasoning_content) {
           cb.onDelta({ content: "", reasoning_content: delta.reasoning_content });
         }
 
-        // Tool call fragments.
         if (delta.tool_calls) {
           for (const tc of delta.tool_calls) {
             if (!toolCallAcc[tc.index]) toolCallAcc[tc.index] = { args: "" };
