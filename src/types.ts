@@ -58,6 +58,8 @@ export interface Provider {
   name: string;
   getModel(): string;
   setModel(model: string): void;
+  /** Known-good model ids. Empty means unconstrained — any string the endpoint accepts. */
+  listModels(): readonly string[];
   chatStream(
     messages: Message[],
     tools: ToolDef[],

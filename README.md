@@ -19,6 +19,15 @@ Sarvam ships an excellent SDK (`sarvamai` on npm/PyPI) and Agent Skills for host
 
 ## Changelog
 
+### v0.2.9
+- Fixed: Ctrl+D / Ctrl+C at any prompt exited silently with status 0 mid-line — readline's
+  close event never resolved the pending question. Now exits cleanly (130 on interrupt).
+- Fixed: tool output printed twice when the model restated it as its answer
+- Fixed: `/model` accepted any string, so a typo failed later as an opaque API error
+- Fixed: Ctrl+O redraw dropped already-typed text from the display while keeping it in the buffer
+- Added: `! <cmd>` shell escape — runs directly, no model round trip
+- `/model` reports when only one model is available instead of prompting for a choice of one
+
 ### v0.2.8
 - Ctrl+O toggles reasoning display on/off (replaces /reasoning command)
 - /model command switches models mid-session without restarting
@@ -109,6 +118,16 @@ Interactive REPL:
 ```bash
 sarvam
 ```
+
+Inside the REPL, `!` runs a shell command directly — no model round trip, no approval prompt,
+since you typed the command yourself:
+
+```
+❯ ! git status
+❯ ! npm test
+```
+
+Commands the *model* chooses to run still go through the usual approval gate.
 
 Single prompt (non-interactive):
 

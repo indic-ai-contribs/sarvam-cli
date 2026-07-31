@@ -39,6 +39,10 @@ export class SarvamProvider implements Provider {
     this.model = model;
   }
 
+  listModels(): readonly string[] {
+    return SARVAM_MODELS;
+  }
+
   async chatStream(
     messages: Message[],
     tools: ToolDef[],

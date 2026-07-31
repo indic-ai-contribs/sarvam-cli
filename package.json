@@ -1,6 +1,6 @@
 {
   "name": "sarvam-cli",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "An agentic CLI coding assistant powered by Sarvam AI — built on the official sarvamai SDK, with OpenAI-compatible fallback. (v0.2.3: fix directory read errors, constrain model to cwd, auto-recover from empty responses)",
   "type": "module",
   "bin": { "sarvam": "./dist/bin/sarvam.js" },

@@ -32,6 +32,12 @@ export class OpenAIProvider implements Provider {
     this.model = model;
   }
 
+  // Unconstrained: this provider fronts any OpenAI-compatible endpoint, so we
+  // can't know the valid model ids. Empty list = accept whatever the user types.
+  listModels(): readonly string[] {
+    return [];
+  }
+
   async chatStream(
     messages: Message[],
     tools: ToolDef[],
