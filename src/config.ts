@@ -79,21 +79,67 @@ export async function saveConfig(cfg: Config): Promise<void> {
 export async function initConfigInteractive(): Promise<Config | null> {
   const { createInterface } = await import("node:readline");
   const rl = createInterface({ input: process.stdin, output: process.stdout });
-  const ask = (q: string) => new Promise<string>((r) => rl.question(q, (a) => r(a.trim())));
+
+  // readline never fires the question callback when the interface closes first
+  // (Ctrl+D, Ctrl+C, or piped stdin running out of lines). Left unhandled the
+  // awaited promise hangs forever, the event loop drains, and node exits with
+  // status 0 having written nothing — reporting success while doing nothing.
+  let closed = false;
+  rl.on("close", () => {
+    closed = true;
+  });
+
+  const ask = (q: string): Promise<string | null> =>
+    new Promise((resolve) => {
+      if (closed) return resolve(null);
+      let answered = false;
+      const onClose = () => {
+        if (!answered) {
+          answered = true;
+          resolve(null);
+        }
+      };
+      rl.once("close", onClose);
+      rl.question(q, (a) => {
+        answered = true;
+        rl.removeListener("close", onClose);
+        resolve(a.trim());
+      });
+    });
 
   console.log("\n  sarvam-cli init\n  ----------------\n");
-  const provider = (await ask("Provider [sarvam/openai] (default: sarvam): ")) || "sarvam";
-  const sarvamKey = await ask("Sarvam API key (sk_..., Enter to skip): ");
-  const sarvamModel = (await ask("Sarvam model (default: sarvam-105b): ")) || "sarvam-105b";
-  const openaiKey = await ask("OpenAI-compatible API key (Enter to skip): ");
-  const openaiModel = (await ask("OpenAI model (default: gpt-4o): ")) || "gpt-4o";
+
+  const questions = [
+    "Provider [sarvam/openai] (default: sarvam): ",
+    "Sarvam API key (sk_..., Enter to skip): ",
+    "Sarvam model (default: sarvam-105b): ",
+    "OpenAI-compatible API key (Enter to skip): ",
+    "OpenAI model (default: gpt-4o): ",
+  ];
+
+  const answers: string[] = [];
+  for (const q of questions) {
+    const a = await ask(q);
+    if (a === null) {
+      rl.close();
+      // Abort instead of saving what we collected. A partial config with an
+      // empty apiKey silently shadows the env vars — that is exactly the bug
+      // the || fallback above exists to work around. No write beats a bad one.
+      console.error("\n  init aborted — input ended before every question was answered.");
+      console.error(`  Nothing written to ${CONFIG_PATH}. Re-run \`sarvam --init\` on a terminal.\n`);
+      return null;
+    }
+    answers.push(a);
+  }
 
   rl.close();
 
+  const [provider, sarvamKey, sarvamModel, openaiKey, openaiModel] = answers;
+
   const cfg: Config = {
-    provider: (provider === "openai" ? "openai" : "sarvam"),
-    sarvam: { apiKey: sarvamKey, model: sarvamModel },
-    openai: { apiKey: openaiKey, model: openaiModel },
+    provider: provider === "openai" ? "openai" : "sarvam",
+    sarvam: { apiKey: sarvamKey, model: sarvamModel || "sarvam-105b" },
+    openai: { apiKey: openaiKey, model: openaiModel || "gpt-4o" },
   };
 
   await saveConfig(cfg);

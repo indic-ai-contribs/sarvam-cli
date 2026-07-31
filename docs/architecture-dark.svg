@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="384" viewBox="0 0 880 384" role="img" aria-label="sarvam-cli agent loop: prompts stream to the Sarvam SDK, tool calls pass through an approval gate before any tool runs, and results feed back into the loop">
+  <defs>
+    <marker id="arw-dark" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#6e7681"/>
+    </marker>
+  </defs>
+  <rect x="24" y="78" width="96" height="60" rx="8" fill="#161b22" stroke="#3d444d" stroke-width="1.5"/>
+  <text x="72.0" y="113.0" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#e6edf3">You</text>
+  <rect x="160" y="62" width="194" height="92" rx="8" fill="#161b22" stroke="#3d444d" stroke-width="1.5"/>
+  <text x="257.0" y="104.0" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#e6edf3">sarvam-cli</text>
+  <text x="257.0" y="124.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#9198a1">REPL + agent loop</text>
+  <rect x="404" y="62" width="210" height="92" rx="8" fill="#161b22" stroke="#3d444d" stroke-width="1.5"/>
+  <text x="509.0" y="104.0" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#4493f8">sarvamai SDK</text>
+  <text x="509.0" y="124.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#9198a1">sarvam-105b</text>
+  <rect x="404" y="250" width="210" height="74" rx="8" fill="#2d2611" stroke="#6b5a1f" stroke-width="1.5"/>
+  <text x="509.0" y="283.0" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#d29922">Approval gate</text>
+  <text x="509.0" y="303.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#9198a1">[y/N]</text>
+  <rect x="136" y="234" width="218" height="106" rx="8" fill="#161b22" stroke="#3d444d" stroke-width="1.5"/>
+  <text x="245" y="256" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e6edf3">Tools</text>
+  <text x="152" y="280" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#3fb950">read_file</text>
+  <text x="256" y="280" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#3fb950">write_file</text>
+  <text x="152" y="302" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#3fb950">patch</text>
+  <text x="256" y="302" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#3fb950">run_shell</text>
+  <path d="M120 108 L154 108" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#arw-dark)"/>
+  <path d="M356 96 L400 96" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#arw-dark)"/>
+  <text x="378" y="86" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#9198a1">prompt</text>
+  <path d="M400 128 L358 128" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#arw-dark)"/>
+  <text x="378" y="146" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#9198a1">stream</text>
+  <path d="M509 156 L509 246" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#arw-dark)"/>
+  <text x="519" y="205" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#9198a1">tool_call</text>
+  <path d="M400 287 L358 287" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#arw-dark)"/>
+  <text x="379" y="277" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#d29922">y</text>
+  <path d="M245 230 L245 158" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#arw-dark)"/>
+  <text x="235" y="196" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#9198a1">result</text>
+  <path d="M614 287 L648 287 L648 108 L618 108" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#arw-dark)"/>
+  <text x="660" y="200" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" fill="#9198a1">n → declined</text>
+  <text x="440" y="366" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" fill="#9198a1">every side effect is gated — nothing touches disk unapproved</text>
+</svg>

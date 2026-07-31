@@ -4,6 +4,10 @@ An open-source agentic CLI coding assistant powered by **Sarvam AI**, built on t
 
 Think of it as a lightweight, hackable terminal agent that talks to Sarvam's Indic-first LLMs (`sarvam-105b`) via the official SDK, and degrades gracefully to any OpenAI-compatible endpoint as a fallback. MIT-licensed, designed to complement Sarvam's SDK + skills ecosystem and be adoptable upstream.
 
+![sarvam-cli in a terminal: a `!` shell escape, an agent turn that runs a script through the approval gate, the Ctrl+O reasoning toggle, and `/model`](docs/demo.gif)
+
+<sub>Recorded from the real binary with [`scripts/record-demo.py`](scripts/record-demo.py) — no external recorder needed.</sub>
+
 ## Why
 
 Sarvam ships an excellent SDK (`sarvamai` on npm/PyPI) and Agent Skills for hosted editors (Claude Code, Cursor, Windsurf). But there's no standalone terminal agent for developers who live in the CLI. `sarvam-cli` fills that gap — it consumes the official SDK for auth, retries, streaming, and SDK quirks, then layers an agentic tool loop on top.
@@ -18,6 +22,14 @@ Sarvam ships an excellent SDK (`sarvamai` on npm/PyPI) and Agent Skills for host
 | **Standalone terminal agent** | **sarvam-cli (this project)** | — |
 
 ## Changelog
+
+### v0.2.10
+- Fixed: `sarvam --init` exited 0 without writing anything when stdin ended early
+  (piped input, Ctrl+D) — the same unguarded readline pattern fixed in the REPL in v0.2.9.
+  It now aborts with a clear message and a non-zero status rather than reporting success.
+  A partial config is never written: an empty `apiKey` silently shadows the env vars.
+- Added: demo GIF and an architecture diagram in the README, both reproducible from
+  `scripts/`
 
 ### v0.2.9
 - Fixed: Ctrl+D / Ctrl+C at any prompt exited silently with status 0 mid-line — readline's
@@ -180,6 +192,13 @@ The agent has four tools, all with approval prompts before any mutation:
 | `run_shell` | Run a shell command, return stdout+stderr |
 
 ## Architecture
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/architecture-dark.svg">
+  <img alt="Agent loop: you prompt sarvam-cli, which streams through the sarvamai SDK to sarvam-105b; tool calls pass through an approval gate before any of read_file, write_file, patch or run_shell executes, and the result feeds back into the loop. Declining returns the refusal to the model." src="docs/architecture-light.svg">
+</picture>
+
+Every side effect is gated. The model can propose a write, a patch, or a shell command, but nothing touches your disk until you approve it — and a decline is fed back as a tool result so the agent can adapt rather than stall.
 
 ```
 bin/sarvam.ts        CLI entrypoint — flag parsing, config loading, mode dispatch

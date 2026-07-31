@@ -113,8 +113,9 @@ async function main() {
   }
 
   if (args.init) {
-    await initConfigInteractive();
-    process.exit(0);
+    const created = await initConfigInteractive();
+    // Non-zero when init aborted without writing, so scripted callers can tell.
+    process.exit(created ? 0 : 1);
   }
 
   const cfg = await loadConfig({
