@@ -23,6 +23,10 @@ Sarvam ships an excellent SDK (`sarvamai` on npm/PyPI) and Agent Skills for host
 
 ## Changelog
 
+### v0.2.11
+- Renamed package from `sarvam-cli` to `sarvamai-cli` (the former was taken on npm) — the
+  `sarvam` binary name is unchanged. First release published to the npm registry.
+
 ### v0.2.10
 - Fixed: `sarvam --init` exited 0 without writing anything when stdin ended early
   (piped input, Ctrl+D) — the same unguarded readline pattern fixed in the REPL in v0.2.9.
