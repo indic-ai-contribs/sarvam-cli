@@ -71,7 +71,7 @@ def build(name, t):
 
     # ---- nodes -------------------------------------------------------------
     p.append(box(24, 78, 96, 60, "You", None, t))
-    p.append(box(160, 62, 194, 92, "sarvam-cli", "REPL + agent loop", t))
+    p.append(box(160, 62, 194, 92, "sarvamai-cli", "REPL + agent loop", t))
     p.append(box(404, 62, 210, 92, "sarvamai SDK", "sarvam-105b", t,
                  title_fill=t["accent"]))
     p.append(box(404, 250, 210, 74, "Approval gate", "[y/N]", t,
@@ -118,7 +118,7 @@ def build(name, t):
 
     body = "\n  ".join(p)
     return f"""<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" \
-viewBox="0 0 {W} {H}" role="img" aria-label="sarvam-cli agent loop: prompts stream to the \
+viewBox="0 0 {W} {H}" role="img" aria-label="sarvamai-cli agent loop: prompts stream to the \
 Sarvam SDK, tool calls pass through an approval gate before any tool runs, and results feed \
 back into the loop">
   <defs>

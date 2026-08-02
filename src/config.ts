@@ -107,7 +107,7 @@ export async function initConfigInteractive(): Promise<Config | null> {
       });
     });
 
-  console.log("\n  sarvam-cli init\n  ----------------\n");
+  console.log("\n  sarvamai-cli init\n  ----------------\n");
 
   const questions = [
     "Provider [sarvam/openai] (default: sarvam): ",

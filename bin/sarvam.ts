@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// sarvam-cli entrypoint — parses CLI flags, loads config, builds the right
+// sarvamai-cli entrypoint — parses CLI flags, loads config, builds the right
 // provider, and launches either single-prompt or interactive REPL mode.
 //
 // Usage:
@@ -75,7 +75,7 @@ function parseArgs(argv: string[]): ParsedArgs {
   return args;
 }
 
-const HELP = `sarvam-cli — agentic coding assistant powered by Sarvam AI
+const HELP = `sarvamai-cli — agentic coding assistant powered by Sarvam AI
 
 USAGE
   sarvam                          Start interactive REPL

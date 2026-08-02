@@ -1,4 +1,4 @@
-// Core shared types for sarvam-cli
+// Core shared types for sarvamai-cli
 
 export type Role = "system" | "user" | "assistant" | "tool";
 

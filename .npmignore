@@ -1,0 +1,13 @@
+src/
+bin/
+tsconfig.json
+.gitignore
+.git/
+.github/
+docs/
+scripts/
+*.py
+*.svg
+*.gif
+.DS_Store
+Thumbs.db

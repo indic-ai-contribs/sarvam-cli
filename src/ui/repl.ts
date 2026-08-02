@@ -73,7 +73,7 @@ export async function startRepl(opts: ReplOpts): Promise<void> {
   const printStatus = () => {
     const model = opts.provider.getModel();
     const reasoningStatus = showReasoning ? `${MAGENTA}on${RESET}` : `${DIM}off${RESET}`;
-    console.log(`${DIM}sarvam-cli · ${opts.provider.name} · ${model} · ${opts.cwd}${RESET}`);
+    console.log(`${DIM}sarvamai-cli · ${opts.provider.name} · ${model} · ${opts.cwd}${RESET}`);
     console.log(`${DIM}exit to quit · clear to reset · Ctrl+O reasoning · /model to switch${RESET}`);
     console.log(`${DIM}reasoning: ${reasoningStatus}\n`);
   };

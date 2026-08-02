@@ -1,16 +1,16 @@
-# sarvam-cli
+# sarvamai-cli
 
 An open-source agentic CLI coding assistant powered by **Sarvam AI**, built on the official [`sarvamai`](https://www.npmjs.com/package/sarvamai) SDK, with an OpenAI-compatible fallback provider. It reads, writes, and edits files and runs shell commands in your project — with your approval before any side effect.
 
 Think of it as a lightweight, hackable terminal agent that talks to Sarvam's Indic-first LLMs (`sarvam-105b`) via the official SDK, and degrades gracefully to any OpenAI-compatible endpoint as a fallback. MIT-licensed, designed to complement Sarvam's SDK + skills ecosystem and be adoptable upstream.
 
-![sarvam-cli in a terminal: a `!` shell escape, an agent turn that runs a script through the approval gate, the Ctrl+O reasoning toggle, and `/model`](docs/demo.gif)
+![sarvamai-cli in a terminal: a `!` shell escape, an agent turn that runs a script through the approval gate, the Ctrl+O reasoning toggle, and `/model`](docs/demo.gif)
 
 <sub>Recorded from the real binary with [`scripts/record-demo.py`](scripts/record-demo.py) — no external recorder needed.</sub>
 
 ## Why
 
-Sarvam ships an excellent SDK (`sarvamai` on npm/PyPI) and Agent Skills for hosted editors (Claude Code, Cursor, Windsurf). But there's no standalone terminal agent for developers who live in the CLI. `sarvam-cli` fills that gap — it consumes the official SDK for auth, retries, streaming, and SDK quirks, then layers an agentic tool loop on top.
+Sarvam ships an excellent SDK (`sarvamai` on npm/PyPI) and Agent Skills for hosted editors (Claude Code, Cursor, Windsurf). But there's no standalone terminal agent for developers who live in the CLI. `sarvamai-cli` fills that gap — it consumes the official SDK for auth, retries, streaming, and SDK quirks, then layers an agentic tool loop on top.
 
 **Relationship to Sarvam's stack:**
 
@@ -19,7 +19,7 @@ Sarvam ships an excellent SDK (`sarvamai` on npm/PyPI) and Agent Skills for host
 | API client / SDK | `sarvamai` (official) | `npm install sarvamai` |
 | Framework provider | Vercel AI SDK provider | `sarvam-ai-sdk` |
 | Skills for hosted editors | `sarvamai/skills` (official) | Claude Code, Cursor |
-| **Standalone terminal agent** | **sarvam-cli (this project)** | — |
+| **Standalone terminal agent** | **sarvamai-cli (this project)** | — |
 
 ## Changelog
 
@@ -92,8 +92,14 @@ Sarvam ships an excellent SDK (`sarvamai` on npm/PyPI) and Agent Skills for host
 ## Install
 
 ```bash
-git clone https://github.com/indic-ai-contribs/sarvam-cli.git
-cd sarvam-cli
+npm install -g sarvamai-cli   # makes `sarvam` available on your PATH
+```
+
+Or build from source:
+
+```bash
+git clone https://github.com/indic-ai-contribs/sarvamai-cli.git
+cd sarvamai-cli
 npm install        # installs sarvamai + typescript
 npm run build
 npm link           # makes `sarvam` available on your PATH
@@ -195,7 +201,7 @@ The agent has four tools, all with approval prompts before any mutation:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/architecture-dark.svg">
-  <img alt="Agent loop: you prompt sarvam-cli, which streams through the sarvamai SDK to sarvam-105b; tool calls pass through an approval gate before any of read_file, write_file, patch or run_shell executes, and the result feeds back into the loop. Declining returns the refusal to the model." src="docs/architecture-light.svg">
+  <img alt="Agent loop: you prompt sarvamai-cli, which streams through the sarvamai SDK to sarvam-105b; tool calls pass through an approval gate before any of read_file, write_file, patch or run_shell executes, and the result feeds back into the loop. Declining returns the refusal to the model." src="docs/architecture-light.svg">
 </picture>
 
 Every side effect is gated. The model can propose a write, a patch, or a shell command, but nothing touches your disk until you approve it — and a decline is fed back as a tool result so the agent can adapt rather than stall.
@@ -233,7 +239,7 @@ The **OpenAI provider** is a thin raw-fetch client that works with any OpenAI-co
 ## Programmatic use
 
 ```typescript
-import { SarvamProvider, runAgent } from "sarvam-cli";
+import { SarvamProvider, runAgent } from "sarvamai-cli";
 
 const provider = new SarvamProvider({ apiKey: process.env.SARVAM_API_KEY! });
 const history = await runAgent([], "list files in the current directory", {

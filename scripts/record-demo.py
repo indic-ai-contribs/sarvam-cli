@@ -253,7 +253,7 @@ def render(events, out_path, max_hold=1.6, min_delay=0.05):
         d.rectangle([0, 0, W, 26], fill=(22, 27, 34))
         for i, c in enumerate([(255, 95, 86), (255, 189, 46), (39, 201, 63)]):
             d.ellipse([14 + i * 18, 9, 22 + i * 18, 17], fill=c)
-        d.text((W // 2 - 34, 6), "sarvam-cli", font=font, fill=(139, 148, 158))
+        d.text((W // 2 - 34, 6), "sarvamai-cli", font=font, fill=(139, 148, 158))
         for y, row in enumerate(snap[:used]):
             for x, (ch, color, bold) in enumerate(row):
                 if ch != " ":

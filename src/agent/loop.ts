@@ -5,7 +5,7 @@
 import { Message, Provider, ToolCallParsed } from "../types.js";
 import { TOOL_DEFS, executeTool, ToolCtx } from "../tools/index.js";
 
-const SYSTEM_PROMPT = `You are sarvam-cli, an agentic coding assistant running in the user's terminal.
+const SYSTEM_PROMPT = `You are sarvamai-cli, an agentic coding assistant running in the user's terminal.
 
 You have exactly FOUR tools. Use them by their EXACT names:
   - read_file   — read a file (args: path)
