@@ -3,23 +3,49 @@
   "version": "0.2.10",
   "description": "An agentic CLI coding assistant powered by Sarvam AI — built on the official sarvamai SDK, with OpenAI-compatible fallback.",
   "type": "module",
-  "bin": { "sarvam": "./dist/bin/sarvam.js" },
+  "bin": {
+    "sarvam": "dist/bin/sarvam.js"
+  },
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
-  "files": ["dist/", "README.md", "LICENSE", "AUTHORS"],
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE",
+    "AUTHORS"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx bin/sarvam.ts",
     "start": "node dist/bin/sarvam.js",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["sarvam", "sarvamai", "cli", "ai", "agent", "coding-assistant", "indic", "openai-compatible", "terminal", "repl", "india"],
+  "keywords": [
+    "sarvam",
+    "sarvamai",
+    "cli",
+    "ai",
+    "agent",
+    "coding-assistant",
+    "indic",
+    "openai-compatible",
+    "terminal",
+    "repl",
+    "india"
+  ],
   "author": "rrskris & sarvamai-cli contributors",
   "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/indic-ai-contribs/sarvamai-cli.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/indic-ai-contribs/sarvamai-cli.git"
+  },
   "homepage": "https://github.com/indic-ai-contribs/sarvamai-cli#readme",
-  "bugs": { "url": "https://github.com/indic-ai-contribs/sarvamai-cli/issues" },
-  "engines": { "node": ">=20" },
+  "bugs": {
+    "url": "https://github.com/indic-ai-contribs/sarvamai-cli/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "sarvamai": "^1.1.7"
   },
