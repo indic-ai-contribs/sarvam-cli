@@ -1,5 +1,7 @@
 # sarvamai-cli
 
+[![npm version](https://img.shields.io/npm/v/sarvamai-cli.svg)](https://www.npmjs.com/package/sarvamai-cli)
+
 An open-source agentic CLI coding assistant powered by **Sarvam AI**, built on the official [`sarvamai`](https://www.npmjs.com/package/sarvamai) SDK, with an OpenAI-compatible fallback provider. It reads, writes, and edits files and runs shell commands in your project — with your approval before any side effect.
 
 Think of it as a lightweight, hackable terminal agent that talks to Sarvam's Indic-first LLMs (`sarvam-105b`) via the official SDK, and degrades gracefully to any OpenAI-compatible endpoint as a fallback. MIT-licensed, designed to complement Sarvam's SDK + skills ecosystem and be adoptable upstream.
