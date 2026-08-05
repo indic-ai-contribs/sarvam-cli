@@ -2,7 +2,9 @@
 
 [![npm version](https://img.shields.io/npm/v/sarvamai-cli.svg)](https://www.npmjs.com/package/sarvamai-cli)
 
-An open-source agentic CLI coding assistant powered by **Sarvam AI**, built on the official [`sarvamai`](https://www.npmjs.com/package/sarvamai) SDK, with an OpenAI-compatible fallback provider. It reads, writes, and edits files and runs shell commands in your project — with your approval before any side effect.
+An open-source agentic CLI coding assistant powered by **Sarvam AI**, built on the official [`sarvamai`](https://www.npmjs.com/package/sarvamai) SDK, with an OpenAI-compatible fallback provider. It reads, writes, and edits files and runs shell commands in your project — confined to the current directory, and in the REPL, with your approval before any side effect. See [Safety model](#safety-model) for what "confined" and "approval" mean exactly, including where approval does *not* apply.
+
+> **Status: early.** It works and it's published, but it has few users and needs testers more than it needs features. If you try it, [open an issue](https://github.com/indic-ai-contribs/sarvamai-cli/issues) — even "this was confusing" is useful.
 
 Think of it as a lightweight, hackable terminal agent that talks to Sarvam's Indic-first LLMs (`sarvam-105b`) via the official SDK, and degrades gracefully to any OpenAI-compatible endpoint as a fallback. MIT-licensed, designed to complement Sarvam's SDK + skills ecosystem and be adoptable upstream.
 
@@ -24,6 +26,34 @@ Sarvam ships an excellent SDK (`sarvamai` on npm/PyPI) and Agent Skills for host
 | **Standalone terminal agent** | **sarvamai-cli (this project)** | — |
 
 ## Changelog
+
+### v0.3.0
+- **Security: file tools are now confined to the working directory.** `read_file`,
+  `write_file`, and `patch` refuse absolute paths, `../` traversal, and in-project symlinks
+  pointing outside. Previously the boundary existed only as an instruction in the system
+  prompt, which a model could simply ignore — and `read_file` has no approval prompt, so
+  nothing else stood in the way of reading `~/.ssh/id_rsa` or `~/.sarvam/config.json`.
+  `~` is now refused rather than silently resolved to a literal `./~/` directory.
+- **Security: `--approve always` no longer auto-approves.** It meant "always ask", but the
+  REPL treated it the same as `never` and skipped every prompt — the most cautious-sounding
+  setting produced the least caution. Clearer `auto` / `prompt` spellings are now preferred;
+  `never` (= `auto`) and `always` (= `prompt`) still work. An invalid value is now rejected
+  instead of silently falling through.
+- **Security: the API key file is written `0600` inside a `0700` directory**, and an existing
+  world-readable config is tightened on load.
+- Fixed: `patch` corrupted replacements containing `$&`, `` $` ``, `$'` or `$1` — a string
+  replacement is `$`-interpreted by `String.replace` even when the pattern is a plain string.
+  Replacing `price` with `$& $&` wrote `price price`.
+- Fixed: repeating a tool call on a later turn was skipped as a duplicate, so "run the tests,
+  fix the failure, run them again" fed the model the pre-fix result. Duplicate detection is now
+  per turn.
+- Added: `run_shell` kills a command after 120s (whole process group) instead of hanging the
+  agent forever on `npm start` or `tail -f`.
+- Added: hitting the turn cap now says so instead of returning as though the task finished.
+- Added: a test suite (`npm test`, 32 tests, no new dependencies) and CI on Node 20/22,
+  including a pack-and-install smoke test of the published binary.
+- Docs: the README claimed approval before *any* side effect. Single-prompt mode has always
+  run unattended; that is now documented rather than implied away, and it announces itself.
 
 ### v0.2.11
 - Renamed package from `sarvam-cli` to `sarvamai-cli` (the former was taken on npm) — the
@@ -170,7 +200,7 @@ sarvam -p sarvam -m sarvam-105b "write a test for the auth flow"
 Auto-approve all tool calls (use with care):
 
 ```bash
-sarvam --approve never "run the tests and report failures"
+sarvam --approve auto "run the tests and report failures"
 ```
 
 Sarvam-native reasoning effort (streams thinking tokens in the REPL):
@@ -185,23 +215,52 @@ All flags:
   -p, --provider <name>           sarvam | openai
   -m, --model <name>              Model name (sarvam-105b, gpt-4o, ...)
       --base-url <url>            Override the API base URL (OpenAI provider only)
-      --approve <mode>            always | never  (default: prompt each time)
+      --approve <mode>            auto | prompt  (default: prompt each time)
   -t, --temperature <n>           Sampling temperature (0–2)
       --reasoning-effort <lvl>    low | medium | high  (Sarvam only)
       --init                      Create ~/.sarvam/config.json interactively
   -h, --help                      Show help
 ```
 
+`--approve` also accepts the older `never` (= `auto`) and `always` (= `prompt`) spellings.
+
 ## Tools
 
-The agent has four tools, all with approval prompts before any mutation:
+| Tool | Approval | Description |
+|------|----------|-------------|
+| `read_file` | none | Read a file (with line numbers, offset/limit paging) |
+| `write_file` | prompted in the REPL | Write/overwrite a file (creates parent dirs) |
+| `patch` | prompted in the REPL | Targeted find-and-replace edit on a file |
+| `run_shell` | prompted in the REPL | Run a shell command, return stdout+stderr (killed after 120s) |
 
-| Tool | Description |
-|------|-------------|
-| `read_file` | Read a file (with line numbers, offset/limit paging) |
-| `write_file` | Write/overwrite a file (creates parent dirs) |
-| `patch` | Targeted find-and-replace edit on a file |
-| `run_shell` | Run a shell command, return stdout+stderr |
+All four are confined to the working directory — see below.
+
+## Safety model
+
+Two independent controls, and it's worth knowing which one is doing the work.
+
+**1. Directory confinement — always on, every mode.** `read_file`, `write_file`, and `patch`
+refuse any path that resolves outside the directory you started in. That covers absolute paths
+(`/etc/passwd`), traversal (`../../.ssh/id_rsa`), and symlinks inside the project pointing out
+of it. `~` is refused rather than expanded. This is enforced in the tool layer, not requested
+in the prompt, so a model that ignores its instructions still can't reach past it.
+
+**2. Approval prompts — interactive REPL only.** In the REPL, `write_file`, `patch`, and
+`run_shell` each ask before running, and a decline is fed back to the model as a tool result so
+it adapts rather than stalls.
+
+**A single prompt runs unattended.** `sarvam "do the thing"` has no interactive turn to prompt
+on, so side effects are approved automatically and reported as they happen; it prints a line
+saying so on the first one. Confinement is what bounds this mode — there is no prompt standing
+between the model and your working directory. Point it at a directory you're willing to have
+edited, and be aware that content the model reads (a README, a dependency's source) is
+untrusted input that can try to steer it.
+
+`read_file` is never gated, so anything readable inside the project can reach the model.
+Don't run it in a directory holding secrets you wouldn't paste into a chat window.
+
+Your API key is written to `~/.sarvam/config.json` with mode `0600` inside a `0700` directory;
+an older, looser config is tightened automatically on the next run.
 
 ## Architecture
 
@@ -210,7 +269,7 @@ The agent has four tools, all with approval prompts before any mutation:
   <img alt="Agent loop: you prompt sarvamai-cli, which streams through the sarvamai SDK to sarvam-105b; tool calls pass through an approval gate before any of read_file, write_file, patch or run_shell executes, and the result feeds back into the loop. Declining returns the refusal to the model." src="docs/architecture-light.svg">
 </picture>
 
-Every side effect is gated. The model can propose a write, a patch, or a shell command, but nothing touches your disk until you approve it — and a decline is fed back as a tool result so the agent can adapt rather than stall.
+In the REPL, every side effect is gated. The model can propose a write, a patch, or a shell command, but nothing touches your disk until you approve it — and a decline is fed back as a tool result so the agent can adapt rather than stall. Single-prompt runs skip the gate by design; in both modes the tools refuse paths outside the working directory. See [Safety model](#safety-model).
 
 ```
 bin/sarvam.ts        CLI entrypoint — flag parsing, config loading, mode dispatch
